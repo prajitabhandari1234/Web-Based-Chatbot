@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>AI Study Assistant</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+</head>
+
+<body>
+
+    <!-- Main chatbot application container -->
+    <div class="chat-container">
+
+        <!-- Application header and chatbot identity -->
+        <header class="chat-header">
+            <h1>AI Study Assistant</h1>
+
+            <p>
+                Your personal AI learning companion
+            </p>
+        </header>
+
+
+        <!--
+            Displays the conversation between the user
+            and the chatbot.
+        -->
+        <main
+            id="chatMessages"
+            class="chat-messages"
+        >
+
+            <!-- Initial welcome message displayed by the chatbot -->
+            <div class="message bot-message">
+                Hello! 👋 I'm your AI Study Assistant.
+                Ask me a question about your studies.
+            </div>
+
+        </main>
+
+
+        <!--
+            Loading indicator displayed while the chatbot
+            is processing a user request.
+        -->
+        <div
+            id="thinking"
+            class="thinking hidden"
+        >
+            AI is thinking...
+        </div>
+
+
+        <!-- User message input area -->
+        <div class="chat-input">
+
+            <input
+                id="messageInput"
+                type="text"
+                placeholder="Ask a study question..."
+                autocomplete="off"
+            >
+
+            <button
+                id="sendButton"
+                type="button"
+            >
+                Send
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- Loads the JavaScript responsible for chatbot interaction -->
+    <script src="script.js"></script>
+
+</body>
+
+</html>

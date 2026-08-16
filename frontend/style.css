@@ -1,0 +1,186 @@
+/*
+ * Apply consistent box sizing and remove default
+ * browser spacing from all elements.
+ */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+
+/*
+ * Centres the chatbot interface within the browser window
+ * and defines the application's default typography.
+ */
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f9;
+    min-height: 100vh;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+/*
+ * Main chatbot container.
+ * Uses a vertical Flexbox layout to organise the header,
+ * conversation area, loading indicator and message input.
+ */
+.chat-container {
+    width: 90%;
+    max-width: 800px;
+    height: 85vh;
+
+    display: flex;
+    flex-direction: column;
+
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+}
+
+
+/* Styles the chatbot title section. */
+.chat-header {
+    background: #263b80;
+    color: white;
+    padding: 20px;
+}
+
+
+.chat-header h1 {
+    margin-bottom: 6px;
+}
+
+
+.chat-header p {
+    opacity: 0.9;
+}
+
+
+/*
+ * Conversation area where user and assistant
+ * messages are displayed.
+ */
+.chat-messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+
+/*
+ * Shared styling applied to both user and
+ * chatbot message bubbles.
+ */
+.message {
+    max-width: 75%;
+    padding: 12px 16px;
+
+    border-radius: 14px;
+    line-height: 1.5;
+}
+
+
+/* User messages appear on the right side of the conversation. */
+.user-message {
+    background: #263b80;
+    color: white;
+    align-self: flex-end;
+}
+
+
+/* Chatbot messages appear on the left side of the conversation. */
+.bot-message {
+    background: #edf0f5;
+    color: #222;
+    align-self: flex-start;
+}
+
+
+/* Displays feedback while the chatbot is processing a request. */
+.thinking {
+    padding: 8px 20px;
+    color: #666;
+    font-style: italic;
+}
+
+
+/*
+ * Utility class used by JavaScript to hide
+ * elements when they are not required.
+ */
+.hidden {
+    display: none;
+}
+
+
+/* Container for the message input and Send button. */
+.chat-input {
+    padding: 15px;
+
+    display: flex;
+    gap: 10px;
+
+    border-top: 1px solid #ddd;
+}
+
+
+/* Message input field. */
+.chat-input input {
+    flex: 1;
+    padding: 12px;
+
+    font-size: 16px;
+
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+
+/* Send button styling. */
+.chat-input button {
+    padding: 12px 24px;
+
+    background: #263b80;
+    color: white;
+
+    border: none;
+    border-radius: 8px;
+
+    cursor: pointer;
+}
+
+
+/* Provides visual feedback when the mouse is over the Send button. */
+.chat-input button:hover {
+    background: #1b2d65;
+}
+
+
+/*
+ * Adjusts the interface for smaller screens
+ * such as mobile phones.
+ */
+@media (max-width: 600px) {
+
+    .chat-container {
+        width: 100%;
+        height: 100vh;
+        border-radius: 0;
+    }
+
+
+    .message {
+        max-width: 85%;
+    }
+}
