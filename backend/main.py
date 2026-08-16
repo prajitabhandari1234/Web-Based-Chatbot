@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 
 
 # Initialise the FastAPI application and define basic API metadata.
@@ -9,6 +10,15 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Allow the front-end application to communicate with the FastAPI backend
+# during local development.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class ChatRequest(BaseModel):
     """
