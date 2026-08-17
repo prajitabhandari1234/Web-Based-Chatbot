@@ -1,22 +1,34 @@
 /*
  * Front-end interaction logic for the AI Study Assistant.
  *
- * This file manages user input, sends messages to the FastAPI backend,
- * and displays both user and chatbot responses in the conversation area.
+ * This module manages user input, displays conversation messages,
+ * communicates with the FastAPI backend, and maintains conversation
+ * history so that follow-up questions can use previous context.
  */
 
 
-// Retrieve the main interactive elements from the HTML document.
+/*
+ * Retrieve the main interactive elements from the HTML document.
+ */
 const messageInput = document.getElementById("messageInput");
 const sendButton = document.getElementById("sendButton");
 const chatMessages = document.getElementById("chatMessages");
 const thinkingIndicator = document.getElementById("thinking");
 
 
-/**
- * Adds a new message to the conversation area.
+/*
+ * Stores previous user and assistant messages.
  *
- * @param {string} message - The text that will be displayed.
+ * The history is sent to the backend so that the language model
+ * can understand follow-up questions within the conversation.
+ */
+const conversationHistory = [];
+
+
+/**
+ * Adds a message to the visible conversation area.
+ *
+ * @param {string} message - The text to display.
  * @param {string} sender - The sender of the message: "user" or "bot".
  */
 function addMessage(message, sender) {
@@ -31,39 +43,69 @@ function addMessage(message, sender) {
         messageElement.classList.add("bot-message");
     }
 
+    /*
+     * textContent is used instead of innerHTML so that message content
+     * is displayed as plain text rather than interpreted as HTML.
+     */
     messageElement.textContent = message;
 
     chatMessages.appendChild(messageElement);
 
-    // Automatically scroll to the most recent message.
+    /*
+     * Automatically scroll to the newest message in the conversation.
+     */
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 
 /**
- * Sends the user's message to the FastAPI backend and displays
- * the returned chatbot response.
+ * Sends the user's latest message to the FastAPI backend and displays
+ * the AI-generated response.
  */
 async function sendMessage() {
 
     const message = messageInput.value.trim();
 
-    // Prevent empty messages from being submitted.
+    /*
+     * Prevent empty or whitespace-only messages from being submitted.
+     */
     if (!message) {
         return;
     }
 
-    // Display the user's message immediately in the conversation.
+
+    /*
+     * Display the user's message immediately in the chat interface.
+     */
     addMessage(message, "user");
 
-    // Clear the input field after submission.
+
+    /*
+     * Store the user's latest message in the conversation history.
+     */
+    conversationHistory.push({
+        role: "user",
+        content: message
+    });
+
+
+    /*
+     * Clear the input field after the message has been submitted.
+     */
     messageInput.value = "";
 
-    // Show the loading indicator while waiting for the backend.
+
+    /*
+     * Show the loading indicator while waiting for the backend.
+     */
     thinkingIndicator.classList.remove("hidden");
 
-    // Temporarily disable the button to prevent duplicate submissions.
+
+    /*
+     * Disable the Send button temporarily to prevent duplicate requests.
+     */
     sendButton.disabled = true;
+
 
     try {
 
@@ -77,12 +119,21 @@ async function sendMessage() {
                 },
 
                 body: JSON.stringify({
-                    message: message
+                    message: message,
+
+                    /*
+                     * Exclude the latest user message from history because
+                     * it is already being sent separately as "message".
+                     */
+                    history: conversationHistory.slice(0, -1)
                 })
             }
         );
 
 
+        /*
+         * Treat non-successful HTTP responses as application errors.
+         */
         if (!response.ok) {
             throw new Error(
                 `Server returned status ${response.status}`
@@ -92,7 +143,21 @@ async function sendMessage() {
 
         const data = await response.json();
 
+
+        /*
+         * Display the AI-generated response.
+         */
         addMessage(data.response, "bot");
+
+
+        /*
+         * Store the assistant response so that future requests can use it
+         * as part of the conversation context.
+         */
+        conversationHistory.push({
+            role: "assistant",
+            content: data.response
+        });
 
 
     } catch (error) {
@@ -102,6 +167,18 @@ async function sendMessage() {
             error
         );
 
+
+        /*
+         * Remove the latest user message from conversation memory because
+         * no successful assistant response was generated for it.
+         */
+        conversationHistory.pop();
+
+
+        /*
+         * Display a user-friendly error rather than exposing technical
+         * implementation details.
+         */
         addMessage(
             "Sorry, I could not connect to the chatbot service. Please try again.",
             "bot"
@@ -110,25 +187,40 @@ async function sendMessage() {
 
     } finally {
 
-        // Hide the loading indicator regardless of success or failure.
+        /*
+         * Hide the loading indicator regardless of whether the request
+         * succeeded or failed.
+         */
         thinkingIndicator.classList.add("hidden");
 
+
+        /*
+         * Re-enable the Send button.
+         */
         sendButton.disabled = false;
 
-        // Return focus to the input field for the next question.
+
+        /*
+         * Return keyboard focus to the message input field.
+         */
         messageInput.focus();
     }
 }
 
 
-// Send the message when the user clicks the Send button.
+/*
+ * Submit the message when the user clicks the Send button.
+ */
 sendButton.addEventListener(
     "click",
     sendMessage
 );
 
 
-// Allow the Enter key to submit a message.
+/*
+ * Allow the Enter key to submit a message without requiring
+ * the user to click the Send button.
+ */
 messageInput.addEventListener(
     "keydown",
     function (event) {
