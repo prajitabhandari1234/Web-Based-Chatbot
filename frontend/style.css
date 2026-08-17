@@ -104,7 +104,10 @@ body {
     background: #edf0f5;
     color: #222;
     align-self: flex-start;
+    white-space: pre-wrap;
+    line-height: 1.6;
 }
+
 
 
 /* Displays feedback while the chatbot is processing a request. */
