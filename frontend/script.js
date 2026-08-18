@@ -135,10 +135,26 @@ async function sendMessage() {
          * Treat non-successful HTTP responses as application errors.
          */
         if (!response.ok) {
-            throw new Error(
-                `Server returned status ${response.status}`
-            );
+
+    let errorMessage =
+        "Sorry, the chatbot service is currently unavailable.";
+
+    try {
+        const errorData = await response.json();
+
+        if (errorData.detail) {
+            errorMessage = errorData.detail;
         }
+
+    } catch (parseError) {
+        console.error(
+            "Unable to parse backend error response:",
+            parseError
+        );
+    }
+
+    throw new Error(errorMessage);
+}  
 
 
         const data = await response.json();
@@ -162,10 +178,18 @@ async function sendMessage() {
 
     } catch (error) {
 
-        console.error(
-            "Unable to communicate with the chatbot backend:",
-            error
-        );
+    console.error(
+        "Unable to communicate with the chatbot backend:",
+        error
+    );
+
+    conversationHistory.pop();
+
+    addMessage(
+        error.message ||
+        "Sorry, I could not connect to the chatbot service. Please try again.",
+        "bot"
+    );
 
 
         /*
