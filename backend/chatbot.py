@@ -10,7 +10,6 @@ import os
 from dotenv import load_dotenv
 from google import genai
 
-
 load_dotenv()
 
 
@@ -59,11 +58,9 @@ def generate_response(
         else:
             conversation_text += f"Assistant: {content}\n"
 
-
     prompt = (
         "You are an AI Study Assistant for university students. "
         "Answer questions clearly, accurately, and concisely.\n\n"
-
         "STRICT RESPONSE FORMAT:\n"
         "- Return plain text only.\n"
         "- Never use Markdown formatting.\n"
@@ -73,7 +70,6 @@ def generate_response(
         "- Do not use asterisks for bullet points.\n"
         "- Do not use Markdown bold formatting.\n"
         "- Use simple section labels such as 'Key Points:' and 'Example:'.\n\n"
-
         "RESPONSE STYLE:\n"
         "- Start with a short and direct answer.\n"
         "- For simple questions, provide 3 to 5 concise bullet points when useful.\n"
@@ -84,16 +80,13 @@ def generate_response(
         "- Do not repeat information unnecessarily.\n"
         "- Do not start with greetings such as 'Welcome' or "
         "'As your study assistant'.\n\n"
-
         "CONVERSATION CONTEXT:\n"
         "- Use the previous conversation when necessary to understand "
         "follow-up questions.\n"
         "- Understand references such as 'it', 'that', 'this', and "
         "'give me another example'.\n\n"
-
         "Previous conversation:\n"
         f"{conversation_text}\n"
-
         f"Student question: {user_message}\n"
         "Assistant:"
     )
@@ -105,9 +98,7 @@ def generate_response(
         )
 
         if not response.output_text:
-            raise RuntimeError(
-                "The AI service returned an empty response."
-            )
+            raise RuntimeError("The AI service returned an empty response.")
 
         return response.output_text
 

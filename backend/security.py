@@ -7,7 +7,6 @@ patterns before user input is forwarded to the language model.
 
 import re
 
-
 # Common phrases that may indicate an attempt to override system behaviour.
 SUSPICIOUS_PATTERNS = [
     r"ignore\s+(all\s+)?previous\s+instructions",
@@ -36,8 +35,7 @@ def contains_prompt_injection(message: str) -> bool:
     normalised_message = message.strip().lower()
 
     return any(
-        re.search(pattern, normalised_message)
-        for pattern in SUSPICIOUS_PATTERNS
+        re.search(pattern, normalised_message) for pattern in SUSPICIOUS_PATTERNS
     )
 
 

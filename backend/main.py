@@ -1,16 +1,17 @@
 from typing import List, Literal
-from fastapi import FastAPI
+
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from backend.security import contains_prompt_injection, sanitise_message
+
 from backend.chatbot import generate_response
-from fastapi import FastAPI, HTTPException
+from backend.security import contains_prompt_injection, sanitise_message
 
 # Initialise the FastAPI application and define basic API metadata.
 app = FastAPI(
     title="AI Study Assistant",
     description="A web-based AI chatbot designed to help students with study questions.",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 # Allow the front-end application to communicate with the FastAPI backend
@@ -22,6 +23,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 class Message(BaseModel):
     """
@@ -36,6 +38,7 @@ class Message(BaseModel):
     role: Literal["user", "assistant"]
     content: str
 
+
 class ChatRequest(BaseModel):
     """
     Represents the request body submitted to the chat endpoint.
@@ -49,6 +52,7 @@ class ChatRequest(BaseModel):
     message: str
     history: List[Message] = []
 
+
 @app.get("/")
 def home():
     """
@@ -57,9 +61,8 @@ def home():
     Returns:
         dict: A confirmation message from the application.
     """
-    return {
-        "message": "AI Study Assistant backend is running"
-    }
+    return {"message": "AI Study Assistant backend is running"}
+
 
 @app.get("/health")
 def health_check():
@@ -69,9 +72,8 @@ def health_check():
     Returns:
         dict: The current health status of the application.
     """
-    return {
-        "status": "healthy"
-    }
+    return {"status": "healthy"}
+
 
 @app.post("/api/chat")
 def chat(request: ChatRequest):
@@ -113,9 +115,7 @@ def chat(request: ChatRequest):
             history=history,
         )
 
-        return {
-            "response": ai_response
-        }
+        return {"response": ai_response}
 
     except RuntimeError as error:
         raise HTTPException(
