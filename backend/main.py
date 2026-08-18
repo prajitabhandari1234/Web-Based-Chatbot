@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 from backend.chatbot import generate_response
 from backend.security import contains_prompt_injection, sanitise_message
+from fastapi.staticfiles import StaticFiles
 
 # Initialise the FastAPI application and define basic API metadata.
 app = FastAPI(
@@ -53,15 +54,17 @@ class ChatRequest(BaseModel):
     history: List[Message] = []
 
 
-@app.get("/")
+@app.get("/api")
 def home():
     """
-    Return a basic message confirming that the backend service is running.
+    Return a confirmation that the backend service is running.
 
     Returns:
         dict: A confirmation message from the application.
     """
-    return {"message": "AI Study Assistant backend is running"}
+    return {
+        "message": "AI Study Assistant backend is running"
+    }
 
 
 @app.get("/health")
@@ -125,3 +128,10 @@ def chat(request: ChatRequest):
                 "Please try again shortly."
             ),
         ) from error
+    
+# Serve the frontend application through FastAPI.
+app.mount(
+    "/",
+    StaticFiles(directory="frontend", html=True),
+    name="frontend",
+)

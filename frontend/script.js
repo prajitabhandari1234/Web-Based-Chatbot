@@ -109,8 +109,12 @@ async function sendMessage() {
 
     try {
 
+        /*
+         * A relative API path is used so that the application works
+         * locally, inside Docker, and on a future cloud deployment.
+         */
         const response = await fetch(
-            "http://127.0.0.1:8000/api/chat",
+            "/api/chat",
             {
                 method: "POST",
 
@@ -123,7 +127,7 @@ async function sendMessage() {
 
                     /*
                      * Exclude the latest user message from history because
-                     * it is already being sent separately as "message".
+                     * it is already sent separately as "message".
                      */
                     history: conversationHistory.slice(0, -1)
                 })
@@ -132,29 +136,31 @@ async function sendMessage() {
 
 
         /*
-         * Treat non-successful HTTP responses as application errors.
+         * Handle non-successful responses returned by the backend.
          */
         if (!response.ok) {
 
-    let errorMessage =
-        "Sorry, the chatbot service is currently unavailable.";
+            let errorMessage =
+                "Sorry, the chatbot service is currently unavailable.";
 
-    try {
-        const errorData = await response.json();
+            try {
 
-        if (errorData.detail) {
-            errorMessage = errorData.detail;
+                const errorData = await response.json();
+
+                if (errorData.detail) {
+                    errorMessage = errorData.detail;
+                }
+
+            } catch (parseError) {
+
+                console.error(
+                    "Unable to parse backend error response:",
+                    parseError
+                );
+            }
+
+            throw new Error(errorMessage);
         }
-
-    } catch (parseError) {
-        console.error(
-            "Unable to parse backend error response:",
-            parseError
-        );
-    }
-
-    throw new Error(errorMessage);
-}  
 
 
         const data = await response.json();
@@ -178,18 +184,10 @@ async function sendMessage() {
 
     } catch (error) {
 
-    console.error(
-        "Unable to communicate with the chatbot backend:",
-        error
-    );
-
-    conversationHistory.pop();
-
-    addMessage(
-        error.message ||
-        "Sorry, I could not connect to the chatbot service. Please try again.",
-        "bot"
-    );
+        console.error(
+            "Unable to communicate with the chatbot backend:",
+            error
+        );
 
 
         /*
@@ -200,10 +198,10 @@ async function sendMessage() {
 
 
         /*
-         * Display a user-friendly error rather than exposing technical
-         * implementation details.
+         * Display a controlled user-friendly error message.
          */
         addMessage(
+            error.message ||
             "Sorry, I could not connect to the chatbot service. Please try again.",
             "bot"
         );
