@@ -93,7 +93,7 @@ def generate_response(
 
     try:
         response = client.interactions.create(
-            model="gemini-3.5-flash",
+            model="chatgpt-4.1-mini",
             input=prompt,
         )
 
