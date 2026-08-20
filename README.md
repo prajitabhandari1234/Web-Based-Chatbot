@@ -1,44 +1,50 @@
 # AI Study Assistant
 
-AI Study Assistant is a web-based Large Language Model (LLM) chatbot designed to support university students with study-related questions. The application provides structured, student-friendly explanations and maintains conversational context so users can ask relevant follow-up questions.
+AI Study Assistant is a web-based Large Language Model (LLM) chatbot developed to support university students with study-related questions.
 
-The system integrates a responsive web interface with a FastAPI backend and the Google Gemini API. It also includes basic security controls, API error handling, conversation context management, and Docker-based deployment.
+The application provides a simple and responsive conversational interface where students can ask academic questions and receive clear, concise, and student-friendly explanations. It also maintains short-term conversation context, allowing users to ask follow-up questions related to previous messages.
 
----
+The system integrates an HTML, CSS, and JavaScript frontend with a Python FastAPI backend and the Google Gemini API. It also includes input validation, input sanitisation, basic prompt-injection detection, API error handling, environment-based API key management, and Docker containerisation.
 
 ## Features
 
 - AI-powered study assistance using Google Gemini
 - Responsive web-based chatbot interface
+- Clear and student-friendly AI responses
 - Context-aware follow-up conversations
-- Structured and student-friendly AI responses
-- Conversation history and context management
+- Temporary conversation history
+- Conversation context management
+- Input sanitisation
+- Pydantic request validation
 - Basic prompt-injection detection
-- Input sanitisation and validation
+- System instruction for chatbot behaviour
 - User-friendly API error handling
 - Secure environment-variable configuration
-- Docker containerisation
 - RESTful API using FastAPI
-- Interactive API documentation with Swagger UI
-
----
+- Health-check endpoint
+- Interactive Swagger API documentation
+- Docker containerisation
 
 ## Technology Stack
-
-### Backend
-
-- Python 3.11
-- FastAPI
-- Uvicorn
-- Pydantic
-- Google Gemini API
-- python-dotenv
 
 ### Frontend
 
 - HTML5
 - CSS3
 - JavaScript
+
+### Backend
+
+- Python 3.11+
+- FastAPI
+- Uvicorn
+- Pydantic
+- python-dotenv
+- Google GenAI Python library
+
+### AI Service
+
+- Google Gemini API
 
 ### Development and Deployment
 
@@ -53,8 +59,6 @@ The system integrates a responsive web interface with a FastAPI backend and the 
 - Black
 - isort
 - flake8
-
----
 
 ## Project Structure
 
@@ -80,84 +84,217 @@ Web-Based-Chatbot/
 └── README.md
 ```
 
-> **Note:** The `.env` file contains local configuration and is excluded from Git and Docker builds. It should never be committed to the repository.
-
----
-
 ## System Architecture
 
-The application follows a client-server architecture in which the browser communicates with the FastAPI backend through an HTTP API.
+The AI Study Assistant follows a client-server architecture.
+
+The frontend provides the chatbot interface and communicates with the FastAPI backend through the `POST /api/chat` endpoint using JSON. The backend validates and sanitises the request, performs basic prompt-injection detection, processes recent conversation context, and forwards the prepared request to the Google Gemini API.
+
+The generated response is returned through FastAPI as JSON and displayed by the frontend.
 
 ```text
-+----------------------+
-|        User          |
-+----------+-----------+
-           |
-           v
-+----------------------+
-|    Web Frontend      |
-|  HTML / CSS / JS     |
-+----------+-----------+
-           |
-           | POST /api/chat
-           v
-+----------------------+
-|   FastAPI Backend    |
-+----------+-----------+
-           |
-           +-----------------------------+
-           |                             |
-           v                             v
-+--------------------+       +----------------------+
-| Input Validation   |       | Security Processing  |
-| & Sanitisation     |       | Prompt Injection     |
-+--------------------+       +----------------------+
-           |
-           v
-+----------------------+
-| Conversation Context |
-| Management            |
-+----------+-------------+
-           |
-           v
-+----------------------+
-| Google Gemini API    |
-+----------+-----------+
-           |
-           v
-+----------------------+
-| AI-Generated Response|
-+----------+-----------+
-           |
-           v
-+----------------------+
-| FastAPI -> Frontend  |
-+----------+-----------+
-           |
-           v
-+----------------------+
-|        User          |
-+----------------------+
+User / University Student
+          |
+          v
+HTML / CSS / JavaScript Frontend
+          |
+          | HTTP POST /api/chat
+          | JSON Request
+          v
+FastAPI Backend
+          |
+          v
+Request Validation
+          |
+          v
+Input Sanitisation
+          |
+          v
+Prompt-Injection Detection
+          |
+          v
+Conversation Context Management
+          |
+          v
+Gemini Integration
+(chatbot.py)
+          |
+          | API Request
+          v
+Google Gemini API
+          |
+          v
+AI-Generated Response
+          |
+          v
+FastAPI Backend
+          |
+          v
+JSON Response
+          |
+          v
+Frontend
+          |
+          v
+User
 ```
 
----
+If communication with the external Gemini service fails, the backend handles the exception and returns an HTTP `503 Service Unavailable` response rather than exposing internal technical errors directly to the user.
 
 ## How the Application Works
 
 1. The user enters a study-related question in the web interface.
-2. JavaScript validates the input and sends the request to the FastAPI backend.
-3. The backend validates and sanitises the incoming request.
-4. Basic security checks are applied before the request is processed.
-5. Previous conversation messages are included to provide conversational context.
-6. The backend sends the prepared request to the Google Gemini API.
-7. Gemini generates an AI response.
-8. FastAPI returns the response to the frontend.
-9. The frontend displays the response in the conversation interface.
-10. The assistant response is stored temporarily in browser memory for subsequent follow-up questions.
+2. JavaScript validates the input and sends a JSON request to `POST /api/chat`.
+3. FastAPI validates the incoming request using Pydantic models.
+4. The user's message is sanitised.
+5. The application performs basic prompt-injection detection.
+6. Recent conversation history is processed to provide conversational context.
+7. The request is passed to the Gemini integration module in `chatbot.py`.
+8. The system instruction defines the chatbot's role and response behaviour.
+9. The prepared request is sent to the Google Gemini API.
+10. Gemini generates an AI response.
+11. FastAPI returns the response to the frontend as JSON.
+12. The frontend displays the response in the chat interface.
+13. The conversation is retained temporarily in browser memory for follow-up questions.
 
----
+## Frontend Design
 
-## Conversation Context
+The frontend is implemented using HTML, CSS, and JavaScript.
+
+The interface provides:
+
+- A chatbot conversation area
+- User message display
+- AI-generated response display
+- Text input field
+- Send button
+- Loading or "AI is thinking..." state
+- Scrollable conversation history
+- Responsive layout
+- User-friendly error messages
+
+JavaScript manages communication with the backend using the Fetch API.
+
+The frontend sends requests to:
+
+```http
+POST /api/chat
+```
+
+The request is sent in JSON format and contains the user's current message and recent conversation history.
+
+Chatbot responses are rendered as plain text rather than executable HTML, reducing the risk of injected HTML or JavaScript being interpreted by the browser.
+
+## Backend Architecture
+
+The backend is implemented using Python and FastAPI.
+
+FastAPI is responsible for:
+
+- API routing
+- Request validation
+- Input processing
+- Security processing
+- Conversation context handling
+- Gemini API integration
+- Error handling
+- Serving frontend static files
+
+The primary application code is contained in:
+
+```text
+backend/main.py
+```
+
+The Gemini integration is separated into:
+
+```text
+backend/chatbot.py
+```
+
+Security-related functionality is separated into:
+
+```text
+backend/security.py
+```
+
+This separation improves modularity and makes the individual components easier to maintain.
+
+## Request Validation
+
+Pydantic models are used to validate incoming API requests.
+
+Each conversation message contains:
+
+```text
+role
+content
+```
+
+The supported roles are:
+
+```text
+user
+assistant
+```
+
+A chat request contains:
+
+```text
+message
+history
+```
+
+This ensures that incoming requests follow the expected data structure before they are processed by the application.
+
+## Gemini API Integration
+
+The Google Gemini API provides the Large Language Model functionality used by the chatbot.
+
+Gemini communication is implemented in:
+
+```text
+backend/chatbot.py
+```
+
+The integration module:
+
+- Loads the Gemini API key
+- Creates the Gemini API client
+- Applies the system instruction
+- Processes recent conversation history
+- Builds the LLM request
+- Sends the request to Gemini
+- Retrieves the generated response
+- Handles API errors
+
+The Gemini API key is loaded using the environment variable:
+
+```text
+GEMINI_API_KEY
+```
+
+The key is never hard-coded into the Python source code.
+
+## System Instruction
+
+The application uses a system instruction to define the role and behaviour of the chatbot.
+
+The instruction directs the model to:
+
+- Act as an AI Study Assistant
+- Support university students
+- Explain academic concepts clearly
+- Use student-friendly language
+- Provide examples where appropriate
+- Use previous conversation context
+- Handle follow-up questions
+- Return plain-text responses
+- Avoid unnecessary repetition
+
+The system instruction is supplied separately from user input so that trusted application instructions remain separate from untrusted user messages.
+
+## Conversation State Management
 
 The application supports contextual follow-up questions during the current browser session.
 
@@ -165,77 +302,109 @@ For example:
 
 ```text
 User:
-What is Python?
+What is an LLM?
 
 Assistant:
-Python is a high-level programming language...
+An LLM is a Large Language Model...
 
 User:
-How is it useful in coding?
+How is it implemented in a chatbot?
 ```
 
-Relevant previous messages are sent with subsequent requests so the language model can understand that the follow-up question refers to the previous conversation.
+The second question does not explicitly repeat "LLM". However, recent conversation history is included in the next API request, allowing the model to understand what the user is referring to.
 
-Conversation history is currently stored temporarily in browser memory. Refreshing or closing the page clears the conversation history.
+The frontend temporarily stores conversation history in browser memory.
 
-This design provides conversational context without requiring persistent user data storage for the current project scope.
+The backend limits the context sent to Gemini to recent messages so that requests do not continue growing indefinitely.
 
----
+Conversation history is not stored in a database.
+
+Refreshing or closing the browser page clears the current conversation.
 
 ## Security
 
-The application implements basic security controls appropriate to the scope of the project.
+The project includes basic security controls appropriate for the scope of the application.
 
-These include:
+### Environment-Based API Key Management
 
-- API credentials stored using environment variables
-- `.env` excluded from Git using `.gitignore`
-- `.env` excluded from Docker images using `.dockerignore`
-- Input sanitisation
-- Pydantic request validation
-- Basic prompt-injection detection
-- Controlled backend error responses
-- Plain-text rendering of chatbot responses
-- No API credentials exposed to frontend JavaScript
+The Gemini API key is stored using:
 
-Requests attempting to reveal or override internal instructions can be detected before normal LLM processing.
+```text
+GEMINI_API_KEY
+```
 
-> **Security:** Never commit API keys, access tokens, passwords, or other credentials to the repository.
+The actual key is stored in `.env`.
 
----
+The `.env` file is excluded from Git using `.gitignore` and excluded from Docker image builds using `.dockerignore`.
+
+### Input Sanitisation
+
+User messages are sanitised before being forwarded to the LLM.
+
+Basic unnecessary whitespace is removed from incoming messages.
+
+### Prompt-Injection Detection
+
+The application checks user input for common patterns that may indicate attempts to override or reveal protected system instructions.
+
+Examples include requests attempting to:
+
+- Ignore previous instructions
+- Reveal the system prompt
+- Display internal instructions
+- Override system instructions
+- Bypass system instructions
+
+Detected requests are handled before normal Gemini processing.
+
+This is a basic security control and is not intended to provide comprehensive protection against every possible prompt-injection technique.
+
+### Plain-Text Response Rendering
+
+Chatbot responses are displayed as plain text rather than executable HTML.
+
+### Backend Credential Protection
+
+The Gemini API key is only available to the backend and is never exposed through frontend JavaScript.
 
 ## Error Handling
 
-The application provides controlled responses when external AI requests fail.
+The application includes error handling for failures involving the external Gemini service.
 
-Handled scenarios include:
+Possible failures include:
 
-- Gemini API failures
-- Invalid API credentials
-- Network or API communication failures
-- Invalid HTTP responses
-- Invalid request bodies
-- Unexpected model responses
+- Gemini API service errors
+- Network communication failures
+- API quota or rate-limit errors
+- Invalid credentials
+- Empty model responses
+- Unexpected API errors
 
-Instead of exposing internal technical information to users, the application displays a user-friendly message such as:
+When Gemini cannot successfully generate a response, the backend converts the failure into:
+
+```text
+HTTP 503 Service Unavailable
+```
+
+The frontend then displays a user-friendly message:
 
 ```text
 The AI service is temporarily unavailable. Please try again shortly.
 ```
 
----
+This prevents detailed internal API errors from being directly exposed through the chatbot interface.
+
+# Setup Instructions
 
 ## Prerequisites
 
-Before running the project, ensure the following are installed:
+Before running the application, ensure the following are installed:
 
 - Python 3.11 or later
 - pip
 - Git
-- Docker Desktop (for container deployment)
+- Docker Desktop for Docker deployment
 - A valid Google Gemini API key
-
----
 
 ## Local Installation
 
@@ -254,7 +423,7 @@ cd Web-Based-Chatbot
 python -m venv venv
 ```
 
-Activate the virtual environment:
+Activate the environment:
 
 ```powershell
 .\venv\Scripts\Activate.ps1
@@ -266,7 +435,7 @@ Activate the virtual environment:
 python3 -m venv venv
 ```
 
-Activate the virtual environment:
+Activate the environment:
 
 ```bash
 source venv/bin/activate
@@ -274,65 +443,63 @@ source venv/bin/activate
 
 ### 3. Install Dependencies
 
-#### Windows
-
-```powershell
+```bash
 pip install -r backend/requirements.txt
 ```
-
-#### macOS / Linux
-
-```bash
-pip3 install -r backend/requirements.txt
-```
-
----
 
 ## Environment Configuration
 
 Create a `.env` file in the project root directory.
 
-The provided `.env.example` file can be used as a template:
+The included `.env.example` file can be used as a template.
 
 ```text
 GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
-Replace `your_gemini_api_key_here` with your own Gemini API key.
+Replace:
 
-> **Important:** The real `.env` file must remain local and must not be committed to GitHub.
-
----
-
-## Running Locally
-
-### Windows
-
-From the project root directory:
-
-```powershell
-uvicorn backend.main:app --reload
+```text
+your_gemini_api_key_here
 ```
 
-### macOS / Linux
+with a valid Gemini API key.
 
-From the project root directory:
+> **Important:** Never commit the real `.env` file or API key to GitHub.
+
+# Running the Application Locally
+
+From the project root directory, run:
 
 ```bash
 uvicorn backend.main:app --reload
 ```
 
-After starting the server, open:
+The server should start on:
 
 ```text
 http://127.0.0.1:8000
 ```
 
-FastAPI serves both the backend API and frontend application.
+Open the address in a web browser.
 
----
+FastAPI serves both the frontend application and backend API through the same service.
 
 ## API Endpoints
+
+### Backend Confirmation
+
+```http
+GET /api
+```
+
+Example response:
+
+```json
+{
+  "message": "AI Study Assistant backend is running"
+}
+```
 
 ### Health Check
 
@@ -348,6 +515,8 @@ Example response:
 }
 ```
 
+The health endpoint can be used to confirm that the FastAPI application is operational.
+
 ### Chat Endpoint
 
 ```http
@@ -358,24 +527,42 @@ Example request:
 
 ```json
 {
-  "message": "What is machine learning?",
+  "message": "What is Python?",
   "history": []
 }
 ```
 
-Example response:
+Example successful response:
 
 ```json
 {
-  "response": "Machine learning is..."
+  "response": "Python is a high-level programming language..."
 }
 ```
 
----
+The `history` array can contain previous user and assistant messages to provide conversation context.
 
-## API Documentation
+Example:
 
-FastAPI automatically provides interactive Swagger API documentation.
+```json
+{
+  "message": "How is it used in AI?",
+  "history": [
+    {
+      "role": "user",
+      "content": "What is Python?"
+    },
+    {
+      "role": "assistant",
+      "content": "Python is a high-level programming language..."
+    }
+  ]
+}
+```
+
+## Swagger API Documentation
+
+FastAPI automatically generates interactive API documentation.
 
 After starting the application, open:
 
@@ -383,17 +570,15 @@ After starting the application, open:
 http://127.0.0.1:8000/docs
 ```
 
-The Swagger interface can be used to inspect and test the available API endpoints.
+Swagger UI can be used to inspect and test the available API endpoints.
 
----
+For example, `POST /api/chat` can be tested directly by providing a JSON request body.
 
-## Docker Deployment
+# Docker Deployment
 
-The application can also be deployed locally using Docker.
+The application can be deployed locally using Docker.
 
-The following Docker commands can be used on Windows, macOS, and Linux.
-
-### 1. Start Docker
+## 1. Start Docker
 
 Ensure Docker Desktop is installed and the Docker engine is running.
 
@@ -403,19 +588,23 @@ Verify Docker:
 docker --version
 ```
 
-### 2. Build the Docker Image
+## 2. Build the Docker Image
 
-From the project root directory:
+From the project root directory, run:
 
 ```bash
 docker build -t ai-study-assistant .
 ```
 
-Docker will build the application image using the project's `Dockerfile`.
+This creates the Docker image:
 
-### 3. Run the Container
+```text
+ai-study-assistant
+```
 
-Run the application and provide the environment configuration at runtime:
+## 3. Run the Docker Container
+
+Run:
 
 ```bash
 docker run --name ai-study-chatbot --env-file .env -p 8000:8000 ai-study-assistant
@@ -424,45 +613,54 @@ docker run --name ai-study-chatbot --env-file .env -p 8000:8000 ai-study-assista
 This command:
 
 - Creates a container named `ai-study-chatbot`
-- Loads the Gemini API key from `.env`
+- Loads environment variables from `.env`
+- Supplies the Gemini API key at runtime
 - Maps host port `8000` to container port `8000`
-- Runs the `ai-study-assistant` Docker image
+- Starts the `ai-study-assistant` image
 
-### 4. Open the Application
+## 4. Open the Dockerised Application
 
-Navigate to:
+Open:
 
 ```text
 http://127.0.0.1:8000
 ```
 
-### 5. Check the Running Container
+The complete frontend and backend application should be available through this address.
+
+## 5. Check Running Containers
 
 ```bash
 docker ps
 ```
 
-### 6. View Container Logs
+## 6. View Docker Logs
 
 ```bash
 docker logs ai-study-chatbot
 ```
 
-### 7. Stop the Container
+Successful requests should produce logs similar to:
+
+```text
+POST /api/chat HTTP/1.1 200 OK
+```
+
+## 7. Stop the Container
 
 ```bash
 docker stop ai-study-chatbot
 ```
 
-### 8. Restart the Container
+## 8. Restart the Container
 
 ```bash
 docker start ai-study-chatbot
 ```
 
-### 9. Remove the Container
+## 9. Remove the Container
 
-Stop the container first if it is currently running:
+Stop the container:
 
 ```bash
 docker stop ai-study-chatbot
@@ -474,40 +672,37 @@ Then remove it:
 docker rm ai-study-chatbot
 ```
 
-The Gemini API key is supplied to the container at runtime through the `.env` file and is not embedded in the Docker image.
+The Gemini API key is provided to the container at runtime through `.env` and is not embedded in the Docker image.
 
----
+# Testing and Validation
 
-## Testing and Validation
+The application was tested across frontend functionality, backend functionality, LLM integration, conversation handling, security, API error handling, API endpoints, and Docker deployment.
 
-The application is tested across backend functionality, AI integration, conversation management, security, error handling, frontend behaviour, and Docker deployment.
+| ID | Test Case | Expected Result | Actual Result | Status |
+|---|---|---|---|---|
+| T01 | Normal study question | Gemini returns a relevant response | Correct student-friendly response displayed | Pass |
+| T02 | Follow-up question | Previous context is understood | Follow-up response maintained conversation context | Pass |
+| T03 | Prompt-injection attempt | Suspicious request is blocked or safely handled | Protected system instructions were not exposed | Pass |
+| T04 | Gemini service failure | HTTP 503 returned and error handled | User-friendly service-unavailable message displayed | Pass |
+| T05 | Health endpoint | `/health` confirms application status | `{"status":"healthy"}` returned | Pass |
+| T06 | Chat API endpoint | Valid JSON request returns AI response | `POST /api/chat` returned successful response | Pass |
+| T07 | Docker deployment | Application runs on port 8000 | Application accessible through Docker on port 8000 | Pass |
 
-Key validation scenarios include:
-
-| ID | Test | Expected Behaviour |
-|---|---|---|
-| T01 | Backend health check | Returns successful health status |
-| T02 | Normal chatbot request | AI-generated response is returned |
-| T03 | Conversation context | Follow-up question uses previous context |
-| T04 | Empty input | Empty message is not submitted |
-| T05 | Prompt-injection attempt | Suspicious request is handled appropriately |
-| T06 | Normal academic question | Legitimate request is processed normally |
-| T07 | Invalid API request | Request validation rejects invalid input |
-| T08 | Gemini API failure | User-friendly error message is displayed |
-| T09 | Docker deployment | Application runs successfully in a container |
-| T10 | Frontend usability | Chat interface operates correctly |
-
-The testing process also verifies that internal technical errors are not exposed directly to users.
-
----
+Testing confirmed that the main functional and technical components of the AI Study Assistant operated as intended.
 
 ## Code Quality
 
-Backend Python code can be formatted and checked using the following development tools:
+The backend Python code can be formatted and checked using:
 
 ```bash
 black backend
+```
+
+```bash
 isort backend
+```
+
+```bash
 flake8 backend
 ```
 
@@ -518,84 +713,154 @@ These tools help maintain:
 - Improved readability
 - Basic static code-quality checking
 
----
+# Design Decisions
 
-## Development Approach
+## FastAPI
 
-The project was developed incrementally using Git and GitHub.
+FastAPI was selected for the backend because it provides lightweight Python API development, Pydantic validation, automatic API documentation, and straightforward integration with Python-based AI libraries.
 
-Major development stages include:
+## Modular Backend Structure
 
-1. Initial project setup
-2. FastAPI backend development
-3. Chat API endpoint implementation
-4. Responsive frontend development
-5. Frontend and backend integration
-6. Google Gemini LLM integration
-7. Conversation history and context management
-8. Basic security and prompt-injection controls
-9. API error handling
-10. Code-quality improvements
-11. Docker containerisation and deployment
-12. Testing and validation
+The backend is divided into separate responsibilities:
 
-Incremental Git commits provide a record of the project's implementation and development progress.
+```text
+main.py
+```
 
----
+handles API routing, request validation, security processing, and HTTP responses.
 
-## Current Limitations
+```text
+chatbot.py
+```
 
-The current version has several limitations:
+handles system instructions, conversation context preparation, Gemini API communication, and AI response processing.
 
-- Conversation history is not persisted after a page refresh.
-- User authentication is not implemented.
+```text
+security.py
+```
+
+handles input sanitisation and basic prompt-injection detection.
+
+This separation improves readability, maintainability, and modularity.
+
+## Google Gemini
+
+Google Gemini was selected as the external LLM service because it provides an API that can be integrated with Python and used to generate natural-language responses.
+
+## Message-Based Conversation Context
+
+Conversation history is stored temporarily on the frontend and included with subsequent API requests.
+
+This approach provides contextual conversations without requiring a persistent database for the current prototype.
+
+## Environment Variables
+
+Sensitive API credentials are supplied through environment variables instead of being hard-coded into source files.
+
+## Docker
+
+Docker was selected to package the application and its dependencies into a consistent runtime environment.
+
+# Current Limitations
+
+The current implementation is a functional prototype and has several limitations:
+
+- Conversation history is not persisted after page refresh.
 - Conversation data is not stored in a database.
-- Prompt-injection protection is basic rather than comprehensive.
-- The application currently uses a single LLM provider.
+- User authentication is not implemented.
+- Prompt-injection detection is basic rather than comprehensive.
+- The application currently depends on a single external LLM provider.
+- Gemini API availability and usage limits can affect chatbot availability.
 - Docker deployment is currently intended for local execution.
-- Automated test coverage can be expanded.
+- Automated unit and integration testing can be expanded.
 
----
-
-## Future Improvements
+# Future Improvements
 
 Potential future enhancements include:
 
 - Persistent conversation storage
-- User authentication and user profiles
 - Database integration
+- User authentication
+- User profiles
 - Multiple conversation sessions
-- Advanced prompt-injection protection
-- Automated unit and integration testing
-- Streaming AI responses
+- More advanced prompt-injection protection
+- Automated unit testing
+- Automated integration testing
 - API rate limiting
+- Streaming AI responses
 - Improved accessibility
 - Cloud deployment
-- Application monitoring and logging
+- Application monitoring
+- Structured logging
 - Support for additional LLM providers
 
----
+# AI Usage Statement
 
-## Project Status
+Generative AI tools were used as supporting tools during the development of this project.
+
+AI assistance was used for activities including:
+
+- Understanding technical concepts
+- Troubleshooting implementation issues
+- Reviewing code structure
+- Improving code comments and documentation
+- Reviewing architecture
+- Supporting testing and debugging
+- Improving README and technical report wording
+
+AI-generated suggestions were reviewed and adapted before being incorporated into the project.
+
+The final implementation was manually tested through the frontend interface, FastAPI backend, Google Gemini API integration, Swagger API documentation, and Docker environment.
+
+Git and GitHub were used throughout development to maintain version history and document incremental implementation progress.
+
+# Development Approach
+
+The project was developed incrementally using Git and GitHub.
+
+Major development stages included:
+
+1. Initial project setup
+2. FastAPI backend development
+3. Chat API endpoint implementation
+4. Frontend interface development
+5. Frontend and backend integration
+6. Google Gemini API integration
+7. Conversation context management
+8. Input sanitisation
+9. Basic prompt-injection protection
+10. API error handling
+11. Code-quality improvements
+12. Docker containerisation
+13. Testing and validation
+14. Documentation
+
+Incremental Git commits provide a record of the project's implementation and development progress.
+
+# Project Status
 
 **Functional Prototype**
 
 The current version includes:
 
 - Web-based chatbot interface
+- Responsive frontend
 - FastAPI backend
+- RESTful chat API
 - Google Gemini integration
+- System instruction
 - Conversation context management
-- Basic security controls
+- Input sanitisation
+- Basic prompt-injection detection
 - API error handling
+- Health-check endpoint
+- Swagger API documentation
+- Environment-based API key management
 - Docker containerisation
 - Functional testing
 
----
+# Repository
 
-## Author
+GitHub Repository:
 
-**Prajita Bhandari**
-
-Bachelor of Information Technology  
-CQUniversity Australia
+https://github.com/prajitabhandari1234/Web-Based-Chatbot
