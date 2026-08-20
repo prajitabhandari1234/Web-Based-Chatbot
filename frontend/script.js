@@ -114,25 +114,18 @@ async function sendMessage() {
          * locally, inside Docker, and on a future cloud deployment.
          */
         const response = await fetch(
-            "/api/chat",
-            {
-                method: "POST",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify({
-                    message: message,
-
-                    /*
-                     * Exclude the latest user message from history because
-                     * it is already sent separately as "message".
-                     */
-                    history: conversationHistory.slice(0, -1)
-                })
-            }
-        );
+        "http://127.0.0.1:8000/api/chat",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                message: message,
+                history: conversationHistory.slice(0, -1)
+            })
+        }
+    );
 
 
         /*
